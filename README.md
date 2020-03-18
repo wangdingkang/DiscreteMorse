@@ -20,11 +20,8 @@ The simplification module simply takes the output from the last step, i.e., the 
 The outputs are multiple trees, each tree will have its own vert and edge files.
 
 
-
-## Sample input/output and commands
-
-Please refer to '' folder for sample inputs and outputs. The pipeline is mostly written in python3, sample commands for running the pipeline is in ''.
-
+## Data
+The data in vtk format are available at . The ground truth for fMOST neurons are also available.
 
 ## Requirements
 Please make sure Python3 is installed on your computer before running.
