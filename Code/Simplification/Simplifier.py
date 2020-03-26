@@ -6,7 +6,6 @@ from PIL import Image
 import numpy as np
 from math import sqrt
 import argparse
-# Burn the tree from leaves.
 
 # We start to remove vertices from the leaves.
 # Create two sets L and B stand for leave set and branching point set.
