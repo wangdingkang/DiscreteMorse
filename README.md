@@ -34,10 +34,11 @@ The module corresponds to the simplification module in the paper. We use the vec
 
 4). [Optional]  Code/Simplification/BranchSelector.py This script will select top n branches based on the length. It can provide a high-level abstraction without losing much information.
 
+## Bash script and test samples.
+The bash script for running the pipeline is available (pipeline_STP.sh and pipeline_fMOST.sh for STP and fMOST data respectively). The sample testing data are under folder STP_sample and fMOST_sample.
 
 ## Data
-The data in vtk format are available at . The ground truth for fMOST neurons are also available.
-
+Datasets.zip contains all the data in vtk format. The ground truth for fMOST neurons are also included.
 
 ## Requirements
 Please make sure Python3 is installed on your computer before running.
