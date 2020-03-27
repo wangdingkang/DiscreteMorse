@@ -13,10 +13,10 @@ Our pipeline is divided in three modules, which is a little different from the p
 ### Vector-score module. (Placeholders for Lucas, there are some scripts need to be explained).
 The module is used for calculating the vector scores. We have five scripts in total and will be introduced in order.
 
-1). Code/Vector/remove_dup_edges.py This script will remove duplicate edges of the output from Dipha. 
-2). Code/Vector/wpca_vector_generation_bnb.py 
-3). Code/Vector/vector_diffusion_3d.py
-4). Code/Vector/3d_paths_src/compute_paths This one is a c++ program, and it might need to recompile. This program will compute the paths (non-degree 2 node to another non-degree 2 node). The path information will then be used for smoothing the vector information.
+1). Code/Vector/remove_dup_edges.py This script will remove duplicate edges of the output from Dipha.  
+2). Code/Vector/wpca_vector_generation_bnb.py  
+3). Code/Vector/vector_diffusion_3d.py  
+4). Code/Vector/3d_paths_src/compute_paths This one is a c++ program, and it might need to recompile. This program will compute the paths (non-degree 2 node to another non-degree 2 node). The path information will then be used for smoothing the vector information.  
 5). Code/Vector/3d_edge_vector_info.py
 
 ### Simplification module.
