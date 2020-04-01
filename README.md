@@ -54,7 +54,7 @@ The bash script for running the pipeline is available (pipeline_STP.sh and pipel
 The bash script for evaluting fMOST outputs is also attached (fMOST_eval.sh).
 
 ## Data
-Datasets.zip contains all the data in vtk format. The ground truth for fMOST neurons are also included.
+Datasets.zip contains all the data in vtk format. The data need to be first converted to image sequences before feeding into our pipeline (the DIPHAT module). The ground truth for fMOST neurons are also included.
 
 ## Requirements
 Please make sure Python3 is installed on your computer before running.
