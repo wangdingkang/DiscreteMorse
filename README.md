@@ -56,6 +56,8 @@ The bash script for evaluting fMOST outputs is also attached (fMOST_eval.sh).
 ## Data
 Datasets.zip contains all the data in vtk format. The data need to be first converted to image sequences before feeding into our pipeline (the DIPHAT module). The ground truth for fMOST neurons are also included.
 
+The converted image stacks are also available under ImageSequences/.
+
 ## Requirements
 Please make sure Python3 is installed on your computer before running.
 The following packages are also required:  
