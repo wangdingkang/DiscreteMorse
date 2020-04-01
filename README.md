@@ -59,3 +59,7 @@ Datasets.zip contains all the data in vtk format. The ground truth for fMOST neu
 ## Requirements
 Please make sure Python3 is installed on your computer before running.
 The following packages are also required:
+numpy
+scipy
+networkx
+scikit-learn
