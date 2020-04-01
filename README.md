@@ -40,12 +40,28 @@ Simplification. Provide options for Leafburner (LEAF) and Rootgrower (ROOT).
 4). [Optional]  Code/Simplification/BranchSelector.py  
 This script will select top n branches based on the length. It can provide a high-level abstraction without losing much information.
 
+## Evaluation code for fMOST results
+The evaluation code for fMOST results is also included in Code/fMOST_Evaluation. There is a sample bash script fMOST_eval.sh for evaluation.  
+
+1). Code/fMOST_Evaluation/Discretize.py  
+Given an output swc file, we first discretize it so that each pair of neighboring tree nodes are within small distance. This step is necessary because some methods (e.g., APP2) will generate very sparse tree outputs.
+
+2). Code/fMOST_Evaluation/Evaluate.py
+Compute recall/precision/F1-score given the path to discretized swc and the ground-truth swc files. The details for computing these metrics are elaborated in the manuscript.
+
 ## Bash script and test samples
-The bash script for running the pipeline is available (pipeline_STP.sh and pipeline_fMOST.sh for STP and fMOST data respectively). The sample testing data are under folder STP_sample and fMOST_sample.
+The bash script for running the pipeline is available (pipeline_STP.sh and pipeline_fMOST.sh for STP and fMOST data respectively). The sample testing data are under folder STP_sample and fMOST_sample.  
+The bash script for evaluting fMOST outputs is also attached (fMOST_eval.sh).
 
 ## Data
-Datasets.zip contains all the data in vtk format. The ground truth for fMOST neurons are also included.
+Datasets.zip contains all the data in vtk format. The data need to be first converted to image sequences before feeding into our pipeline (the DIPHAT module). The ground truth for fMOST neurons are also included.
+
+The converted image stacks are also available under ImageSequences/.
 
 ## Requirements
 Please make sure Python3 is installed on your computer before running.
-The following packages are also required:
+The following packages are also required:  
+numpy  
+scipy  
+networkx  
+scikit-learn  
