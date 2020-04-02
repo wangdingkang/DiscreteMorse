@@ -50,7 +50,7 @@ persistence threshold - perform the algorithm with the specific threshold - the 
 output dir - directory output will be written to (one vert file and one edge file)  
 
 
-### Vector-score module. (Placeholders for Lucas, there are some scripts need to be explained).
+### Vector-score module. 
 The module is used for calculating the vector scores. We have five scripts in total and will be introduced in order.
 
 1). Code/Vector/remove_dup_edges.py  
