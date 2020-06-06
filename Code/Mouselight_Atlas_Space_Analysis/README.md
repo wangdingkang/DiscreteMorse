@@ -1,7 +1,7 @@
 ## Work in progress.
 More code about regional analysis will be uploaded later.
 
-
+### Python scripts...
 STP_mouselight_searcher.py
 This python script will find all the neurons in the given directory, which have soma location in the injection site.
 
