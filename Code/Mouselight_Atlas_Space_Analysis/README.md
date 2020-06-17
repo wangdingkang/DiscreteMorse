@@ -10,6 +10,10 @@ This python script will create a image stack from a swc file. Usage:
 ```
 python Projector.py $swc_file_path $z $x $y
 ```
+It will automatically create a folder using the swc filename, and output $z images (sections) into that folder.
+
+### Workflow...
+
 
 ### In MouseLight directory...
 MouseLightMOinfo.txt: The list containing ids of all the candidate mouselight neurons.
