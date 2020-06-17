@@ -13,7 +13,7 @@ python Projector.py $swc_file_path $z $x $y
 It will automatically create a folder using the swc filename, and output $z images (sections) into that folder.
 
 ### Workflow...
-
+![Image of overlapping workflow](https://raw.githubusercontent.com/wangdingkang/DiscreteMorse/master/Code/Mouselight_Atlas_Space_Analysis/Workflow_images/Mouselight_Overlapping_Workflow.png)
 
 ### In MouseLight directory...
 MouseLightMOinfo.txt: The list containing ids of all the candidate mouselight neurons.
