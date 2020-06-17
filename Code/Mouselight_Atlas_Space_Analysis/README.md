@@ -5,6 +5,12 @@ More code about regional analysis will be uploaded later.
 STP_mouselight_searcher.py
 This python script will find all the neurons in the given directory, which have soma location in the injection site.
 
+Projector.py
+This python script will create a image stack from a swc file. Usage:
+```
+python Projector.py $swc_file_path $z $x $y
+```
+
 ### In MouseLight directory...
 MouseLightMOinfo.txt: The list containing ids of all the candidate mouselight neurons.
 
