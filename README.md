@@ -27,14 +27,17 @@ make
 ```
 
 Here is a sample command to run DIPHA:  
+```bash
 mpiexec -n 32 ./dipha  path/to/input.bin path/to/output.bin path/to/output_for_morse.bin nx ny nz
-
+```
+```bash
 mpiexec -n 32 is only required if running with multiple (in this case 32) processes. The rest of the command can be used to run on a single process.
-
+```
 path/to/input.bin - path to dipha input file generated in step 1  
 path/to/output.bin - path to traditional dipha output file - this file is not used by our pipeline  
 path/to/output_for_morse.bin - path to output file our pipeline uses, contains persistence information of edges  
 nx ny nz - dimensions of image stack - if you are not sure what these values are, they are the last line printed in step 1 python script  
+
 ### 3.) load_persistence_diagram.m  
 This matlab script converts the dipha output file with edge persistence information to text format usable for step 4  
 parameters:  
@@ -43,7 +46,9 @@ output file - path to where edge file will be written
 
 ### 4.) dipha-output/src/  
 This outputs the actual Discrete Morse graph.  To build, simply enter the following command:  
+```bash
 g++ ComputeGraphReconstruction.cpp  
+```
 
 4 parameters:  
 vert filename - vert file created in step 1  
@@ -73,8 +78,10 @@ d_name - directory contain image stack.
 Performs a gaussian smoothing of the vectors computed in step 2.  Takes the same two parameters as above, also outputting files containing the updated vectors to the same directory.
 
 4). Code/Vector/3d_paths_src/compute_paths  
-This one is a c++ program.  To compile, simply enter the following command:  
+This one is a c++ program.  To compile, simply enter the following command: 
+```bash
 g++ ComputePaths.cpp 
+```
 
 This program will compute the paths (non-degree 2 node to another non-degree 2 node) of the output.
 
@@ -128,7 +135,9 @@ The converted image stacks are also available under ImageSequences/.
 ## Requirements
 Please make sure Python3 is installed on your computer before running.
 The following packages are also required:  
+```
 numpy  
 scipy  
 networkx  
 scikit-learn  
+```
