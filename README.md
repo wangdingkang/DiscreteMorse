@@ -10,6 +10,7 @@ Our pipeline is divided in three modules, which is a little different from the p
 DIPHA is used to efficiently compute persistence pairs and values within the Discrete Morse Graph Reconstruction algorithm.  The original DIPHA Code can be found at https://github.com/DIPHA/dipha - we made modifications to this code to output the information needed by the Discrete Morse Graph Algorithm - this modified code is included.
 
 **1.) write_dipha_file_3d.py - Used to generate dipha input file from an image stack** 
+
 parameters:  
 input_dir - directory containing image stack - if image stack needs  any preprocessing (such as gaussian filter) this must be applied before and saved as an image stack.
 
@@ -18,6 +19,7 @@ dipha_output_filename - filename for dipha input file that gets created (binary 
 vert_filename - filename that stores vertex information (txt file).
 
 **2.) dipha-graph-recon**
+
 To build dipha, go to dipha-graph-recon directory and perform the following commands:  
 ```bash
 mkdir build  
@@ -39,12 +41,14 @@ path/to/output_for_morse.bin - path to output file our pipeline uses, contains p
 nx ny nz - dimensions of image stack - if you are not sure what these values are, they are the last line printed in step 1 python script  
 
 **3.) load_persistence_diagram.m**
+
 This matlab script converts the dipha output file with edge persistence information to text format usable for step 4  
 parameters:  
 input file - outputted file from DIPHA  
 output file - path to where edge file will be written  
 
-**4.) dipha-output/src/**  
+**4.) dipha-output/src/** 
+
 This outputs the actual Discrete Morse graph.  To build, simply enter the following command:  
 ```bash
 g++ ComputeGraphReconstruction.cpp  
@@ -60,7 +64,8 @@ output dir - directory output will be written to (one vert file and one edge fil
 ### Vector-score module. 
 The module is used for calculating the vector scores. We have five scripts in total and will be introduced in order.
 
-**1). Code/Vector/remove_dup_edges.py**  
+**1). Code/Vector/remove_dup_edges.py** 
+
 This script will remove duplicate edges of the output from
 
 parameters:  
@@ -68,6 +73,7 @@ input_filename - edge output file from Discrete Morse Graph Reconstruction modul
 output_filename - name of output edge file that will not contain duplicate edges
 
 **2). Code/Vector/wpca_vector_generation_bnb.py**
+
 Computes a weighted principle component vector at each vertex of discrete morse output.  These vectors are used to calculate the local density flow at each vertex.
 
 parameters:  
@@ -75,9 +81,11 @@ out_dir - the directory containing the discrete morse outputs, files generated b
 d_name - directory contain image stack.
 
 **3). Code/Vector/vector_diffusion_3d.py**
+
 Performs a gaussian smoothing of the vectors computed in step 2.  Takes the same two parameters as above, also outputting files containing the updated vectors to the same directory.
 
 **4). Code/Vector/3d_paths_src/compute_paths**  
+
 This one is a c++ program.  To compile, simply enter the following command: 
 ```bash
 g++ ComputePaths.cpp 
@@ -90,8 +98,8 @@ takes the directory of the morse output.  This is currently hard coded, please g
 
 NOTE: remove dup edges must be run before this.
 
-
 **5). Code/Vector/3d_edge_vector_info.py**
+
 Outputs a file containing 4 scores for each edge - intensity at each node and a score between 0 and 1 at each node indicating how well alligned with true flow morse output is at the given node.  This information is used to further simplify the morse output in the simplification module.
 
 parameters:  
@@ -102,25 +110,31 @@ PATH_RADIUS - Used to determine how many verts along a path will be used to esti
 ### Simplification module.
 The module corresponds to the simplification module in the paper. We use the vector information (calculated in the previous step) and density score information (will be calculated in this module) to decide which edges should be dropped. We have 4 scripts in this module.
 
-**1). [Only for STP data] Code/Simplification/BoundaryEdgeRemover.py**  
+**1). [Only for STP data] Code/Simplification/BoundaryEdgeRemover.py**
+
 Due to the zero-value background and degenerated gradient on those pixels in the cleaned STP data. we will have redundant segments in those regions, so we use this script to remove such segments.
 
 **2). Code/Simplification/ShortestPathForest.py**  
+
 Given the root file "multi_roots.txt", this script will extract a spanning forest out of the graph produced by previous steps.
 
 **3). Code/Simplification/Simplifier.py**  
+
 Simplification. Provide options for Leafburner (LEAF) and Rootgrower (ROOT).
 
-**4). [Optional]  Code/Simplification/BranchSelector.py**  
+**4). [Optional]  Code/Simplification/BranchSelector.py** 
+
 This script will select top n branches based on the length. It can provide a high-level abstraction without losing much information.
 
 ## Evaluation code for fMOST results
 The evaluation code for fMOST results is also included in Code/fMOST_Evaluation. There is a sample bash script fMOST_eval.sh for evaluation.  
 
 **1). Code/fMOST_Evaluation/Discretize.py**  
+
 Given an output swc file, we first discretize it so that each pair of neighboring tree nodes are within small distance. This step is necessary because some methods (e.g., APP2) will generate very sparse tree outputs.
 
 **2). Code/fMOST_Evaluation/Evaluate.py**
+
 Compute recall/precision/F1-score given the path to discretized swc and the ground-truth swc files. The details for computing these metrics are elaborated in the manuscript.
 
 ## Bash script and test samples
