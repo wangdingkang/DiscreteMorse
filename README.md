@@ -9,7 +9,7 @@ Our pipeline is divided in three modules, which is a little different from the p
 
 DIPHA is used to efficiently compute persistence pairs and values within the Discrete Morse Graph Reconstruction algorithm.  The original DIPHA Code can be found at https://github.com/DIPHA/dipha - we made modifications to this code to output the information needed by the Discrete Morse Graph Algorithm - this modified code is included.
 
-1.) write_dipha_file_3d.py - Used to generate dipha input file from an image stack  
+### 1.) write_dipha_file_3d.py - Used to generate dipha input file from an image stack  
 parameters:  
 input_dir - directory containing image stack - if image stack needs  any preprocessing (such as gaussian filter) this must be applied before and saved as an image stack.
 
@@ -17,12 +17,14 @@ dipha_output_filename - filename for dipha input file that gets created (binary 
 
 vert_filename - filename that stores vertex information (txt file).
 
-2.) dipha-graph-recon
+### 2.) dipha-graph-recon
 To build dipha, go to dipha-graph-recon directory and perform the following commands:  
+```bash
 mkdir build  
 cd build  
 cmake ..  
 make  
+```
 
 Here is a sample command to run DIPHA:  
 mpiexec -n 32 ./dipha  path/to/input.bin path/to/output.bin path/to/output_for_morse.bin nx ny nz
@@ -33,13 +35,13 @@ path/to/input.bin - path to dipha input file generated in step 1
 path/to/output.bin - path to traditional dipha output file - this file is not used by our pipeline  
 path/to/output_for_morse.bin - path to output file our pipeline uses, contains persistence information of edges  
 nx ny nz - dimensions of image stack - if you are not sure what these values are, they are the last line printed in step 1 python script  
-3.) load_persistence_diagram.m  
+### 3.) load_persistence_diagram.m  
 This matlab script converts the dipha output file with edge persistence information to text format usable for step 4  
 parameters:  
 input file - outputted file from DIPHA  
 output file - path to where edge file will be written  
 
-4.) dipha-output/src/  
+### 4.) dipha-output/src/  
 This outputs the actual Discrete Morse graph.  To build, simply enter the following command:  
 g++ ComputeGraphReconstruction.cpp  
 
