@@ -24,10 +24,11 @@ cnt = 0
 
 
 def read_voxel_list(img_stack_folder):
-    image_paths = os.listdir(img_stack_folder)
+    image_paths = sorted(os.listdir(img_stack_folder))
     z_range = range(1, len(image_paths) + 1)
     image_points, first_time = [], True
     for img_name, z in zip(image_paths, z_range):
+        print(img_name)
         img_path = os.path.join(img_stack_folder, img_name)
         img = Image.open(img_path)
         img_arr = np.array(img)

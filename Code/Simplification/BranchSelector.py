@@ -56,7 +56,7 @@ def read_verts_edges(input_swc):
             if not line.startswith('#'):
                 data = line.strip().split()
                 x, y, z = map(int, data[2:5])
-                id, pid = int(data[0]), int(data[-2])
+                id, pid = int(data[0]), int(data[6])
                 tree_nodes.append(TreeNode(id, x, y, z, 0, 0))
                 if pid != -1:
                     px, py, pz = tree_nodes[pid].x, tree_nodes[pid].y, tree_nodes[pid].z
@@ -132,11 +132,16 @@ def output_branches_to_swc(selected_branches, whole_swc_file, output_path):
     data = []
     with open(whole_swc_file) as file:
         for line in file:
-            data.append(line)
-    data = [data[i] for i in selected_ids]
+            if not line.startswith('#'):
+                data.append(line)
+    new_data = [data[i] for i in selected_ids]
+    selected_id_mapping = {id : index for index, id in enumerate(selected_ids)}
+    selected_id_mapping[-1] = -1
     with open(output_path, 'w') as file:
-        file.write(''.join(data))
-
+        for d in new_data:
+            arr = d.strip().split()
+            arr[0], arr[6] = str(selected_id_mapping[int(arr[0])]), str(selected_id_mapping[int(arr[6])])
+            file.write(' '. join(arr) + '\n')
 
 def output_branches_by_group(selected_branches, output_prefix, stride_size = 5):
     temp_edges, cnt = [], 0
