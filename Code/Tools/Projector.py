@@ -154,7 +154,7 @@ def make_png(seg_all, z_range, dir_path, max_density, ind_arr, l=3000, w=2250, m
 if __name__ == '__main__':
     swc_file = sys.argv[1]
     z_range = 251
-	length, width = 700, 700
+    length, width = 700, 700
     output_dir = swc_file[:-4]
     dir_name = os.path.dirname(swc_file)
     nodes, edges = read_ve(swc_file)
