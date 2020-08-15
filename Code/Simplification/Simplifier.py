@@ -45,6 +45,10 @@ input_edge = os.path.join(dirname, 'stree_e{}.txt'.format(tree_num))
 output_swc = os.path.join(dirname, 'stree_simp.swc')
 # input Image stack to get voxel info.
 image_stack_folder = os.path.join(dirname, 'image_stack')
+# output voxel
+output_voxel_path = os.path.join(dirname, 'simplifier_voxels.txt')
+# output tree_nodes
+output_tree_nodes_path = os.path.join(dirname, 'simplifier_tree_nodes.txt')
 
 # threshold for removing low-density points, and upper bound for nn distance, pair with larger dist won't be considered.
 # distance is in micron.
@@ -91,6 +95,7 @@ class TreeNode:
     # Thickness for each tree_ndoe.
     def cal_thickness(self):
         self.thickness = sqrt(self.nn_cnt) * THICKNESS_FACTOR
+        print(self.thickness)
         if self.thickness < 1:
             self.thickness = 1
 
@@ -426,7 +431,7 @@ def update_sum_nn_along_path(start_id, tree_nodes):
 
 
 def read_voxel_list(img_stack_folder, density_threshold):
-    image_paths = os.listdir(img_stack_folder)
+    image_paths = sorted(os.listdir(img_stack_folder))
     z_range = range(1, len(image_paths) + 1)
     image_points, first_time = [], True
     print('Reading...')
@@ -444,10 +449,22 @@ def read_voxel_list(img_stack_folder, density_threshold):
     return image_points
 
 
+def output_voxel_list(voxels, output_path):
+    with open(output_path, 'w') as file:
+        for v in voxels:
+            file.write(f"{v[0]} {v[1]} {v[2]} {v[3]}" + "\n")
+
+def output_tree_nodes(tree_nodes, output_path):
+    with open(output_path, 'w') as file:
+        for node in tree_nodes:
+            file.write(node.to_output_string())
+
 if __name__ == '__main__':
 
     voxel_list = read_voxel_list(image_stack_folder, DENSITY_TRESHOLD)
     tree_nodes, edge_list = read_verts_edges(input_vert, input_edge)
+    output_voxel_list(voxel_list, output_voxel_path)
+    output_tree_nodes(tree_nodes, output_tree_nodes_path)    
     root, root_id = tree_nodes[0], 0
 
     print('Updating intensity and connection')
