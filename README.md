@@ -146,6 +146,13 @@ Datasets.zip contains all the data in vtk format. The data need to be first conv
 
 The converted image stacks are also available under ImageSequences/.
 
+## Tree decomposition
+The code for matching DM outputs with mouselight neurons. The workflow is shown in the figure below.
+![workflow](Images/Workflow_decomp.pdf)
+
+**Code/TreeDecomposition**
+The pipelined code for the workflow. Solve a convex problem to find target mouselight neurons, select important branching points from the DM output, find matchings for those branching point in the mouselight neurons.
+
 ## Other tools
 Under Code/tools, there is a script for projecting swc files onto 2D planes, i.e., converting swc to image sequence.
 To use it, you need to change the values of variables ``z_range, length, width`` in the code, these variables correspond to number of images and the size of the image.
