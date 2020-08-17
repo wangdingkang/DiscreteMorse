@@ -148,7 +148,7 @@ The converted image stacks are also available under ImageSequences/.
 
 ## Tree decomposition
 The code for matching DM outputs with mouselight neurons. The workflow is shown in the figure below.
-![workflow](Images/Workflow_decomp.pdf)
+![Decomposition workflow](Images/Workflow_decomp.jpg)
 
 **Code/TreeDecomposition**
 The pipelined code for the workflow. Solve a convex problem to find target mouselight neurons, select important branching points from the DM output, find matchings for those branching point in the mouselight neurons.
