@@ -129,7 +129,7 @@ def find_splitting_point_type_v1(dm_SWC, splitting_points, selected_mouselight_S
             if matching.type == 1:
                 break
             for close_splitting_point in close_splitting_points:
-                print(f"Testing closed_splitting_point: ({close_splitting_point.x}, {close_splitting_point.y}, {close_splitting_point.z}).")
+                # print(f"Testing closed_splitting_point: ({close_splitting_point.x}, {close_splitting_point.y}, {close_splitting_point.z}).")
                 mouselight_y_shape = mouselight_swc.get_split_branches(close_splitting_point.id, hop_limit=30)
                 mouselight_branch1, mouselight_branch2 = mouselight_y_shape['branch1'], mouselight_y_shape['branch2']
                 b1_mb1, b2_mb2= branch2branch_matching(branch1, mouselight_branch1), branch2branch_matching(branch2, mouselight_branch2)
@@ -163,7 +163,7 @@ def find_splitting_point_type_v1(dm_SWC, splitting_points, selected_mouselight_S
             if matching.type == 1:
                 break
             for close_point in close_points:
-                print(f"Testing close_point ({close_point.x}, {close_point.y}, {close_point.z})")
+                # print(f"Testing close_point ({close_point.x}, {close_point.y}, {close_point.z})")
                 mouselight_branch = mouselight_swc.get_single_branch(close_point.id, hop_limit=30)
                 b1_mb = branch2branch_matching(branch1, mouselight_branch)
                 b2_mb = branch2branch_matching(branch2, mouselight_branch)
@@ -303,7 +303,7 @@ def output_matchings(matchings, filepath, swc_names):
 if __name__ == '__main__':
     summary_image_stack_folder = 'data/MouseLight/STP_180830_50um_Jai_summary/'
     mouselight_folder = 'data/MouseLight/target_neurons/'
-    dm_neuron_path = 'data/MouseLight/GTree_outputs_fixed.swc'
+    dm_neuron_path = 'data/MouseLight/Jai_atlas_32_branch20.swc'
     output_branch_path = 'data/MouseLight/output_branches/50um_id_{id}_{branch}.swc'
 
     image_files = sorted(
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     SZ = len(image_files)
     SY, SX = np.array(Image.open(image_files[0])).shape
 
-    mouselight_filepaths = [os.path.join(mouselight_folder, f) for f in os.listdir(mouselight_folder)]
+    mouselight_filepaths = [os.path.join(mouselight_folder, f) for f in os.listdir(mouselight_folder) if f.endswith('.swc') ]
     mouselight_SWCs = [SWCBranchingPoint(path) for path in mouselight_filepaths]
     mouselight_thicken_mats = [swc.get_thicken_mat((SX, SY, SZ), radius=5) for swc in mouselight_SWCs]
 

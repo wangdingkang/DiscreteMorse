@@ -1,14 +1,16 @@
 from operator import attrgetter
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+import copy
 
 
 class TreeNode:
-    def __init__(self, id, x, y, z, children, father_id, thickness = 0):
+    def __init__(self, id, x, y, z, children, father_id, thickness = 1):
         self.id = id
         self.x = x
         self.y = y
         self.z = z
+        self.type = 1
         self.thickness = thickness
         self.children = children
         self.father_id = father_id
@@ -29,27 +31,170 @@ class TreeNode:
 
 
 class SWCBranchingPoint:
-    def __init__(self, filepath):
-        self.swc_reader(filepath)
+    def __init__(self, filepath: str = None, dictionary: dict = None, offset: tuple = None, start_with_zero: bool = True):
+        if filepath:
+            self.swc_reader(filepath, offset, start_with_zero)
+        else:
+            self.swc_dict = dictionary
 
-    def swc_reader(self, filepath):
+    def self_check(self):
+        for key, value in self.swc_dict.items():
+            print(key, value)
+
+    def swc_reader(self, filepath, offset = None, start_with_zero=True):
         """
         :param filepath: filepath to swc file.
         """
         swc_dict = {}
+        id_offset = 0 if start_with_zero else -1
+        ox, oy, oz = 0, 0, 0
+        if offset is not None:
+            ox, oy, oz = offset
+        print(filepath)
         with open(filepath) as file:
             for line in file:
                 line = line.strip()
                 if not line.startswith('#'):
                     data = line.split()
                     x, y, z = int(float(data[2])), int(float(data[3])), int(float(data[4]))
+                    x = x + ox; y = y + oy; z = z + oz
                     thickness = float(data[5])
-                    id, father_id = int(data[0]), int(data[6])
+                    id, father_id = int(data[0]) + id_offset, int(data[6]) + id_offset
+                    if father_id == -2:
+                        father_id = -1
                     swc_dict[id] = TreeNode(id, x, y, z, [], father_id, thickness=thickness)
                     if father_id != -1:
                         swc_dict[father_id].children.append(id)
         self.swc_dict = swc_dict
 
+    def get_all_subtrees(self):
+        leaves = [node for node in self.swc_dict.values() if node.is_leaf()]
+        cnt_leaves = len(leaves)
+        print(f"We have {cnt_leaves} leaves.")
+        if cnt_leaves > 15:
+            print(f"The process will be slow if we have too many leaves.")
+            exit(-1)
+        i = 63
+        for i in range(1, 2**cnt_leaves):
+            selected_leaves = [leaves[j] for j in range(cnt_leaves) if (1 << j) & i != 0]
+            sub_dict = self.get_subtree(selected_leaves)
+            yield i, sub_dict
+
+    def get_unmatched_subtree(self, matched_mask):
+        leaves = [node for node in self.swc_dict.values() if node.is_leaf()]
+        branches = {}
+        for leaf_id, leaf in enumerate(leaves):
+            if (1 << leaf_id) & matched_mask == 0:
+                this_branch = self.get_branch_dict(leaf)
+                branches = {**branches, **this_branch}
+        return self.relabel_swc_dict(branches)
+
+    def get_matched_subtree_v2(self, all_mouselight_coordinates, each_branch_try = 4):
+        leaves = [node for node in self.swc_dict.values() if node.is_leaf()]
+        mouselight_ball_tree = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(all_mouselight_coordinates)
+        cnt_leaves = len(leaves)
+        # print(f"We have {cnt_leaves} leaves.")
+        best_coords = [self.swc_dict[0].get_coordinate()]
+        best_distance = self.get_incremental_matching_distance(all_mouselight_coordinates, best_coords, mouselight_ball_tree)
+        best_dict = {0:copy.deepcopy(self.swc_dict[0])}
+        best_match_mask = 0
+        decrease_flag = True
+
+        branches = {}
+        branch_dicts = {}
+        branch_tries = {}
+        for leaf_id, leaf in enumerate(leaves):
+            branch_dict = self.get_branch_dict(leaf)
+            branch_keys = sorted(branch_dict.keys())
+            this_branch_coordinates = [branch_dict[bkey].get_coordinate() for bkey in branch_keys]
+            length = len(this_branch_coordinates)
+            tries = [i * length // each_branch_try for i in range(1, each_branch_try)] + [len(this_branch_coordinates)]
+            branches[leaf_id] = this_branch_coordinates
+            branch_dicts[leaf_id] = branch_dict
+            branch_tries[leaf_id] = tries
+        print(len(leaves))
+        while decrease_flag is True:
+            # print(best_distance)
+            decrease_flag = False
+            temp_bid, temp_tid, temp_distance = -1, -1, best_distance
+            for leaf_id, leaf in enumerate(leaves):
+                if ((1<<leaf_id) & best_match_mask) == 0:
+                    tries = branch_tries[leaf_id]
+                    this_branch_coordinates = branches[leaf_id]
+                    for id, t in enumerate(tries):
+                        this_distance = self.get_incremental_matching_distance(all_mouselight_coordinates, list(set(best_coords+this_branch_coordinates[:t])), mouselight_ball_tree)
+                        if this_distance < temp_distance:
+                            decrease_flag = True
+                            temp_distance = this_distance
+                            temp_tid = id
+                            temp_bid = leaf_id
+            if temp_tid != -1 and temp_bid != -1:
+                best_distance = temp_distance
+                best_coords = list(set(best_coords + branches[temp_bid][:branch_tries[temp_bid][temp_tid]]))
+                best_keys = sorted(branch_dicts[temp_bid].keys())
+                best_selected_keys = best_keys[:branch_tries[temp_bid][temp_tid]]
+                branch_dict = branch_dicts[temp_bid]
+                selected_dict = {key : branch_dict[key] for key in best_selected_keys}
+                best_dict = {** best_dict, ** selected_dict}
+                if temp_tid == each_branch_try - 1:
+                    best_match_mask = best_match_mask | (1<<temp_bid)
+        return best_match_mask, best_distance, self.relabel_swc_dict(best_dict)
+
+    def get_incremental_matching_distance(self, mouselight_points, subtree_points, mouselight_ball_tree ):
+        subtree_ball_tree = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(subtree_points)
+        distance, _ = subtree_ball_tree.kneighbors(mouselight_points)
+
+        totAB = 0.0
+        # print(distance.shape)
+        for i in range(len(mouselight_points)):
+            totAB += distance[i, 0]
+        dist_AB =  totAB / len(mouselight_points)
+
+        totBA = 0.0
+        distance, _ = mouselight_ball_tree.kneighbors(subtree_points)
+        for i in range(len(subtree_points)):
+            totBA += distance[i, 0]
+        dist_BA =  totBA / len(subtree_points)
+        return max(totAB, totBA)
+
+    def get_branch_dict(self, leaf):
+        ret_dict = {}
+        temp = leaf
+        while temp is not None:
+            ret_dict[temp.id] = copy.deepcopy(temp)
+            if temp.father_id != -1:
+                temp = self.swc_dict[temp.father_id]
+            else:
+                break
+        return ret_dict
+
+
+    def get_subtree(self, leaves):
+        ret_dict = {}
+        for leaf in leaves:
+            temp = leaf
+            while temp is not None:
+                ret_dict[temp.id] = copy.deepcopy(temp)
+                if temp.father_id != -1:
+                    temp = self.swc_dict[temp.father_id]
+                else:
+                    break
+                # print(temp.id, temp.father_id)
+        # print(len(ret_dict))
+        return self.relabel_swc_dict(ret_dict)
+
+    def relabel_swc_dict(self, arbitrary_dict):
+        keys = sorted(arbitrary_dict.keys())
+        keys = [-1] + keys
+        key_mapping = {}
+        for id, key in enumerate(keys):
+            key_mapping[key] = id - 1
+        sorted_dict = {key_mapping[key] : arbitrary_dict[key] for key in arbitrary_dict}
+        for key in sorted_dict:
+            father_id = sorted_dict[key].father_id
+            sorted_dict[key].id = key
+            sorted_dict[key].father_id = key_mapping[father_id]
+        return sorted_dict
 
     def _init_hop2leaf(self):
         leaves = [node for node in self.swc_dict.values() if node.is_leaf()]
@@ -69,7 +214,7 @@ class SWCBranchingPoint:
         :return: a list of top k splitting nodes.
         """
         self._init_hop2leaf()
-        splitting_points = [node for node in self.swc_dict.values() if node.is_splitting_point()]
+        splitting_points = [node for node in self.swc_dict.values() if node.is_splitting_point() and not node.is_root()]
         for splitting_point in splitting_points:
             children = splitting_point.children
             splitting_point.importance = self.swc_dict[children[0]].hop2leaf
@@ -200,15 +345,15 @@ class SWCBranchingPoint:
         return {'splitting_point': starting_point.get_coordinate(), 'branch1': upstream_branch + branch1,
                 'branch2': upstream_branch + branch2}
 
-    def init_nearest_neighor_tree(self):
+    def init_nearest_neighor_tree(self, n_neighbors = 5):
         self.ball_tree_points = list(self.swc_dict.values())
         all_points = [node.get_coordinate() for node in self.ball_tree_points]
-        self.ball_tree = NearestNeighbors(n_neighbors=3, algorithm='ball_tree').fit(all_points)
+        self.ball_tree = NearestNeighbors(n_neighbors=n_neighbors, algorithm='ball_tree').fit(all_points)
 
-    def init_nearest_splitting_neighor_tree(self):
+    def init_nearest_splitting_neighor_tree(self, n_neighbors=5):
         self.splitting_ball_tree_points = [node for node in self.swc_dict.values() if node.is_splitting_point()]
         all_splitting_points = [node.get_coordinate() for node in self.splitting_ball_tree_points]
-        self.splitting_ball_tree = NearestNeighbors(n_neighbors=3, algorithm='ball_tree').fit(all_splitting_points)
+        self.splitting_ball_tree = NearestNeighbors(n_neighbors=n_neighbors, algorithm='ball_tree').fit(all_splitting_points)
 
     def overlap_with_branch(self, branch, dist_bound=5, coverage_bound=0.75):
         """
@@ -229,6 +374,11 @@ class SWCBranchingPoint:
         coord = self.splitting_ball_tree_points[index[0][0]].get_coordinate()
         return distance[0,0] < dist_bound, coord
 
+    def matching_point(self, source_point_coords, dist_bound=5):
+        distance, index = self.ball_tree.kneighbors([source_point_coords])
+        coord = self.ball_tree_points[index[0][0]].get_coordinate()
+        return distance[0, 0] < dist_bound, coord
+
     def get_matched_splitting_point(self, source_splitting_coords):
         distance, index = self.splitting_ball_tree.kneighbors([source_splitting_coords])
         indexes = index[0]
@@ -240,3 +390,106 @@ class SWCBranchingPoint:
         indexes = index[0]
         close_points = [self.ball_tree_points[i] for i in indexes]
         return close_points
+
+    def get_matched_distance(self, source_coords):
+        distance, _ = self.ball_tree.kneighbors(source_coords)
+        tot = 0.0
+        # print(distance.shape)
+        for i in range(len(source_coords)):
+            tot += distance[i, 0]
+        return tot / len(source_coords)
+
+    def get_all_coordinates(self):
+        coord = []
+        for val in self.swc_dict.values():
+            coord.append(val.get_coordinate())
+        return coord
+
+    def get_direction(self, node, hops = 5):
+        temp = node
+        direction = [0., 0., 0.]
+        cnt = 0
+        while cnt < hops:
+            father_id = temp.father_id
+            if father_id == -1:
+                break
+            father = self.swc_dict[temp.father_id]
+            coord_temp = temp.get_coordinate()
+            coord_father = father.get_coordinate()
+            dx, dy, dz = [coord_temp[i] - coord_father[i] for i in range(3)]
+            cadin = np.sqrt(dx**2 + dy**2 + dz**2)
+            dx, dy, dz = dx / cadin, dy / cadin, dz / cadin
+            direction[0] += dx; direction[1] += dy; direction[2] += dz
+            temp = father
+            cnt += 1
+        if cnt > 0:
+            direction = [d / cnt for d in direction]
+        return direction
+
+    def get_leaves_and_directions(self):
+        leaves = [node for node in self.swc_dict.values() if node.is_leaf()]
+        directions = []
+        for node in leaves:
+            directions.append(self.get_direction(node))
+        return leaves, directions
+
+    def get_only_in_bound_subtree(self, bounds):
+        ret_dict, starting_root_id = {}, 0
+        self.recursive_search(ret_dict, starting_root_id, bounds=bounds)
+        return self.relabel_swc_dict(ret_dict)
+
+    def recursive_search(self, ret_dict, temp_id, bounds):
+        ret_dict[temp_id] = self.swc_dict[temp_id]
+        lx, rx, ly, ry, lz, rz = bounds
+        # import pdb
+        # pdb.set_trace()
+        # print(self.swc_dict[temp_id].children)
+        for child_id in self.swc_dict[temp_id].children:
+            (x, y, z) = self.swc_dict[child_id].get_coordinate()
+            # print(x, y, z, dx, dy, dz)
+            # print(x, y, z)
+            if lx < x < rx and ly < y < ry and lz < z < rz:
+                self.recursive_search(ret_dict, child_id, bounds)
+
+    def write_to_file(self, filepath):
+        keys = sorted(self.swc_dict.keys())
+        # print(len(keys))
+        with open(filepath, 'w') as file:
+            for key in keys:
+                tree_node = self.swc_dict[key]
+                file.write(f"{key} {tree_node.type} {tree_node.x} {tree_node.y} {tree_node.z} {tree_node.thickness} {tree_node.father_id}" + "\n")
+
+    def get_distance(self, node_main:TreeNode, node_b:TreeNode, main_offset = (0,0, 0)):
+        x1, y1, z1 = node_main.get_coordinate()
+        ox, oy, oz = main_offset
+        x1 -= ox; y1 -= oy; z1 -= oz
+        x2, y2, z2 = node_b.get_coordinate()
+        return np.sqrt((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)
+
+    def concat_branch(self, offset, another_swc):
+        the_other_root = another_swc.swc_dict[0]
+        leaves = [node for node in self.swc_dict.values() if node.is_leaf()]
+        ox, oy, oz = offset
+        min_dist, min_index = 1e6, -1
+        for id, node in enumerate(leaves):
+            dist = self.get_distance(node, the_other_root, offset)
+            if dist < min_dist:
+                min_dist, min_index = dist, id
+        concat_id = leaves[min_index].id
+        id_offset = len(self.swc_dict)
+        other_swc_keys = sorted(another_swc.swc_dict.keys())
+        self.swc_dict[concat_id].children = [id_offset]
+        for value in another_swc.swc_dict.values():
+            value.x += ox; value.y += oy; value.z += oz
+        for key in other_swc_keys:
+            node = another_swc.swc_dict[key]
+            old_id, old_father_id = node.id, node.father_id
+            new_id = old_id + id_offset
+            new_father_id = concat_id if old_father_id == -1 else old_father_id + id_offset
+            node.id = new_id; node.father_id = new_father_id
+            self.swc_dict[new_id] = node
+
+    def translate(self, X, Y, Z):
+        for value in self.swc_dict.values():
+            value.x += X; value.y += Y; value.z += Z
+
