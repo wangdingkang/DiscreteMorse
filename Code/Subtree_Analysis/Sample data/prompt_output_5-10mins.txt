@@ -1,0 +1,36 @@
+data/MouseLight/Jai_atlas_32_branch40.swc
+data/MouseLight/target_neurons\AA0584_fix.swc
+data/MouseLight/target_neurons\AA0592_fix.swc
+data/MouseLight/target_neurons\AA0597_fix.swc
+data/MouseLight/target_neurons\AA0617_fix.swc
+data/MouseLight/target_neurons\AA0649_fix.swc
+data/MouseLight/target_neurons\AA0652_fix.swc
+data/MouseLight/target_neurons\AA0658_fix.swc
+data/MouseLight/target_neurons\AA0662_fix.swc
+data/MouseLight/target_neurons\AA0665_fix.swc
+data/MouseLight/target_neurons\AA0926_fix.swc
+data/MouseLight/target_neurons\AA0927_fix.swc
+processing data/MouseLight/target_neurons\AA0584_fix.swc
+best matched with subtree mask: 284248342528 with distance: 22444.105993545098
+processing data/MouseLight/target_neurons\AA0592_fix.swc
+best matched with subtree mask: 1076023590908 with distance: 37606.82145272231
+processing data/MouseLight/target_neurons\AA0597_fix.swc
+best matched with subtree mask: 482110078992 with distance: 8745.474111009864
+processing data/MouseLight/target_neurons\AA0617_fix.swc
+best matched with subtree mask: 975925141056 with distance: 28988.65178049651
+processing data/MouseLight/target_neurons\AA0649_fix.swc
+best matched with subtree mask: 9419751492 with distance: 8054.103890869699
+processing data/MouseLight/target_neurons\AA0652_fix.swc
+best matched with subtree mask: 825098240 with distance: 39484.54481145712
+processing data/MouseLight/target_neurons\AA0658_fix.swc
+best matched with subtree mask: 95563022361 with distance: 9220.240671423131
+processing data/MouseLight/target_neurons\AA0662_fix.swc
+best matched with subtree mask: 455266566168 with distance: 9659.197439191537
+processing data/MouseLight/target_neurons\AA0665_fix.swc
+best matched with subtree mask: 82678120480 with distance: 8268.764842075714
+processing data/MouseLight/target_neurons\AA0926_fix.swc
+best matched with subtree mask: 284440854533 with distance: 24572.133080577463
+processing data/MouseLight/target_neurons\AA0927_fix.swc
+best matched with subtree mask: 1081154144773 with distance: 30787.088599332106
+
+Process finished with exit code 0
