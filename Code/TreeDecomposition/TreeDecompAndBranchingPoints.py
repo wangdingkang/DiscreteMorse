@@ -103,36 +103,49 @@ def find_splitting_point_type(dm_SWC, splitting_points, selected_mouselight_SWCs
     return matchings
 
 
-def find_splitting_point_type_v1(dm_SWC, splitting_points, selected_mouselight_SWCs):
+def output_temporary_branches(branch, temp_name):
+    with open(temp_name, 'w') as file:
+        for id, coord in enumerate(branch):
+            file.write(f"{id} 1 " + ' '.join(list(map(str, coord))) + f" 1 {id - 1}" + '\n')
+
+
+def find_splitting_point_type_v1(dm_SWC, splitting_points, selected_mouselight_SWCs, selected_mouselight_filenames):
     matchings = []
     # splitting_points = [splitting_points[6]]
-    for splitting_point in splitting_points:
+    temp_branch_output_cnt = 0
+    for split_id, splitting_point in enumerate(splitting_points):
+        print(f"-----------------{split_id}------------------")
+        print(f"This is point ({splitting_point.x}, {splitting_point.y}, {splitting_point.z}) from input Ret.")
         point_id = splitting_point.id
         matching = Matching(point_id)
-        y_shape = dm_SWC.get_split_branches(point_id, hop_limit=60)
+        y_shape = dm_SWC.get_split_branches(point_id, hop_limit=75)
         matching.y_shape = y_shape
         branch1, branch2 = y_shape['branch1'], y_shape['branch2']
         splitting_point = y_shape['splitting_point']
         for id, mouselight_swc in enumerate(selected_mouselight_SWCs):
+            print("This is neuron ", id, selected_mouselight_filenames[id])
             close_splitting_points = mouselight_swc.get_matched_splitting_point(splitting_point)
             close_points = mouselight_swc.get_matched_point(splitting_point)
+            if matching.type == 1:
+                break
             for close_splitting_point in close_splitting_points:
+                print(f"Testing closed_splitting_point: ({close_splitting_point.x}, {close_splitting_point.y}, {close_splitting_point.z}).")
                 mouselight_y_shape = mouselight_swc.get_split_branches(close_splitting_point.id, hop_limit=30)
                 mouselight_branch1, mouselight_branch2 = mouselight_y_shape['branch1'], mouselight_y_shape['branch2']
                 b1_mb1, b2_mb2= branch2branch_matching(branch1, mouselight_branch1), branch2branch_matching(branch2, mouselight_branch2)
                 b1_mb2, b2_mb1 = branch2branch_matching(branch1, mouselight_branch2), branch2branch_matching(branch2, mouselight_branch1)
-                # pdb.set_trace()
+                # print(b1_mb1, b2_mb2, b1_mb2, b2_mb1, matching.type)
                 if b1_mb1 and b2_mb2:
                     matching.type = 1
                     matching.split_matching = {id: close_splitting_point.get_coordinate()}
-                    matching.branch1_matching[id] = mouselight_branch1
-                    matching.branch2_matching[id] = mouselight_branch2
+                    matching.branch1_matching = {id : mouselight_branch1}
+                    matching.branch2_matching = {id : mouselight_branch2}
                     break
                 if b1_mb2 and b2_mb1:
                     matching.type = 1
                     matching.split_matching = {id: close_splitting_point.get_coordinate()}
-                    matching.branch1_matching[id] = mouselight_branch2
-                    matching.branch2_matching[id] = mouselight_branch1
+                    matching.branch1_matching = {id : mouselight_branch2}
+                    matching.branch2_matching = {id : mouselight_branch1}
                     break
                 if b1_mb1 or b1_mb2:
                     matching.type = 2
@@ -150,6 +163,7 @@ def find_splitting_point_type_v1(dm_SWC, splitting_points, selected_mouselight_S
             if matching.type == 1:
                 break
             for close_point in close_points:
+                print(f"Testing close_point ({close_point.x}, {close_point.y}, {close_point.z})")
                 mouselight_branch = mouselight_swc.get_single_branch(close_point.id, hop_limit=30)
                 b1_mb = branch2branch_matching(branch1, mouselight_branch)
                 b2_mb = branch2branch_matching(branch2, mouselight_branch)
@@ -161,6 +175,8 @@ def find_splitting_point_type_v1(dm_SWC, splitting_points, selected_mouselight_S
                     matching.type = 2
                     matching.branch2_matching[id] = mouselight_branch
                     break
+        print(f"Got matching type {matching.type}")
+        print("--------------------------------\n")
         matchings.append(matching)
     return matchings
 
@@ -176,7 +192,8 @@ def branch2branch_matching(source_branch, swc_branch, dist_bound = 5):
             if get_distance(point, target_point) < dist_bound:
                 right_cnt += 1
                 break
-    return right_cnt / total_cnt > 0.5
+    # print(f"Matching got {right_cnt / total_cnt}")
+    return right_cnt / total_cnt > 0.4
 
 def visualize_matchings(matchings, swc_file_names, source_SWC):
     for id, matching in enumerate(matchings):
@@ -247,8 +264,10 @@ def visualize_matchings(matchings, swc_file_names, source_SWC):
 
 def output_matchings(matchings, filepath, swc_names):
     for i, matching in enumerate(matchings):
+        if matching.type == 3:
+            print(f"id {i}, matching type {matching.type}")
         if matching.type == 1 or matching.type == 2:
-
+            print(f"id {i}, matching type {matching.type}")
             y_shape_left_path = filepath.format(id = i, branch="y_shape_left")
             y_shape_right_path = filepath.format(id = i, branch="y_shape_right")
             matched_path = filepath.format(id = 1, branch="matched_branches")
@@ -259,10 +278,8 @@ def output_matchings(matchings, filepath, swc_names):
             right_branch_matched = matching.branch2_matching
             # pdb.set_trace()
             with open(y_shape_left_path, 'w') as file:
-                file.write("###Branch 1\n")
                 for id, coord in enumerate(left_branch):
                     file.write(f"{id} 1 " + ' '.join(list(map(str,coord))) + f" 1 {id - 1}" + '\n')
-                file.write("#Branch 2\n")
             with open(y_shape_right_path, 'w') as file:
                 for id, coord in enumerate(right_branch):
                     file.write(f"{id} 1 " + ' '.join(list(map(str, coord))) + f" 1 {id - 1}" + '\n')
@@ -286,8 +303,7 @@ def output_matchings(matchings, filepath, swc_names):
 if __name__ == '__main__':
     summary_image_stack_folder = 'data/MouseLight/STP_180830_50um_Jai_summary/'
     mouselight_folder = 'data/MouseLight/target_neurons/'
-    output_folder = 'data/MouseLight/output_decomposed/'
-    dm_neuron_path = 'data/MouseLight/Jai_atlas_32_branch20.swc'
+    dm_neuron_path = 'data/MouseLight/GTree_outputs_fixed.swc'
     output_branch_path = 'data/MouseLight/output_branches/50um_id_{id}_{branch}.swc'
 
     image_files = sorted(
@@ -327,6 +343,11 @@ if __name__ == '__main__':
     average_weight = sum(weights) / len(weights)
     selected_mouselight_indices = [i for i in range(len(weights)) if weights[i] > average_weight]
 
+    # GTree ret
+    # selected_mouselight_indices = [0, 1, 3, 4, 6, 7, 9]
+    # APP2 ret
+    # selected_mouselight_indices = [1, 2, 3, 4, 9, 10]
+    # DM ret
     # selected_mouselight_indices = [0, 1, 4, 6, 9]
     print('Selected mouselight indices: ', selected_mouselight_indices)
     selected_mouselight_SWCs = [mouselight_SWCs[i] for i in selected_mouselight_indices]
@@ -340,8 +361,8 @@ if __name__ == '__main__':
     for swc in selected_mouselight_SWCs:
         swc._init_hop2leaf()
     # matchings = find_splitting_point_type(dm_SWC, dm_splitting_points, selected_mouselight_SWCs, )
-    matchings = find_splitting_point_type_v1(dm_SWC, dm_splitting_points, selected_mouselight_SWCs, )
-    for matching in matchings:
-        print(matching.get_info_string())
+    matchings = find_splitting_point_type_v1(dm_SWC, dm_splitting_points, selected_mouselight_SWCs, selected_mouselight_filenames)
+    # for matching in matchings:
+    #     print(matching.get_info_string())
     output_matchings(matchings, output_branch_path, selected_mouselight_filenames)
     # visualize_matchings(matchings, selected_mouselight_filenames, dm_SWC)
