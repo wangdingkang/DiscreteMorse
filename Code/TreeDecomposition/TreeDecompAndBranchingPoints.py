@@ -301,10 +301,10 @@ def output_matchings(matchings, filepath, swc_names):
 
 
 if __name__ == '__main__':
-    summary_image_stack_folder = 'data/MouseLight/STP_180830_50um_Jai_summary/'
-    mouselight_folder = 'data/MouseLight/target_neurons/'
-    dm_neuron_path = 'data/MouseLight/Jai_atlas_32_branch20.swc'
-    output_branch_path = 'data/MouseLight/output_branches/50um_id_{id}_{branch}.swc'
+    summary_image_stack_folder = 'Samples/data/MouseLight/STP_180830_50um_Jai_summary/'
+    mouselight_folder = 'Samples/data/MouseLight/target_neurons/'
+    dm_neuron_path = 'Samples/data/MouseLight/Jai_atlas_32_branch20.swc'
+    output_branch_path = 'Samples/data/MouseLight/output_branches/50um_id_{id}_{branch}.swc'
 
     image_files = sorted(
         [os.path.join(summary_image_stack_folder, filename) for filename in os.listdir(summary_image_stack_folder)])
